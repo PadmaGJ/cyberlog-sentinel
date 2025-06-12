@@ -1,4 +1,4 @@
-# CyberLog Sentinel 🛡️
+# CyberLog Sentinel 🛡️ https://padmagj.github.io/cyberlog-sentinel/
 
 CyberLog Sentinel is an intelligent log analysis tool designed for cybersecurity professionals and enthusiasts. It leverages the power of Google's Gemini API to provide rapid, AI-driven insights into log files, helping to identify potential threats and suggest immediate incident response actions.
 
