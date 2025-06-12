@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Log Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0f1f; /* Deeper space blue background */
+            color: #cbd5e1; /* Lighter gray text for better contrast */
+        }
+        .card {
+            background-color: #1e293b; /* Slate gray card background */
+            border: 1px solid #334155; /* Slightly softer border */
+            border-radius: 0.75rem; /* More rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+        }
+        .btn-primary {
+            background-image: linear-gradient(to right, #3b82f6, #60a5fa); /* Blue gradient */
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+            font-weight: 600;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #2563eb, #3b82f6);
+            box-shadow: 0 7px 14px rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background-color: #475569; /* Cool gray */
+            color: #e2e8f0; /* Lighter text for secondary button */
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .btn-secondary:hover {
+            background-color: #334155;
+            transform: translateY(-1px);
+        }
+        .btn-ai-feature { /* New button style for AI features */
+            background-image: linear-gradient(to right, #8b5cf6, #a78bfa); /* Purple gradient */
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2);
+            font-weight: 600;
+        }
+        .btn-ai-feature:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #7c3aed, #8b5cf6);
+            box-shadow: 0 7px 14px rgba(139, 92, 246, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-ai-feature:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .alert-warning {
+            background-color: #fffbeb; 
+            color: #b45309; 
+            border-left-width: 4px;
+            border-color: #f59e0b; 
+        }
+        .alert-error {
+            background-color: #fff1f2; 
+            color: #be123c; 
+            border-left-width: 4px;
+            border-color: #f43f5e; 
+        }
+        .alert-success {
+            background-color: #f0fdf4; 
+            color: #15803d; 
+            border-left-width: 4px;
+            border-color: #22c55e; 
+        }
+        .loading-spinner-container {
+            background-color: rgba(30, 41, 59, 0.85); 
+            backdrop-filter: blur(4px);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(203, 213, 225, 0.3); 
+            border-top: 4px solid #60a5fa; 
+            border-radius: 50%;
+            width: 48px; 
+            height: 48px;
+            animation: spin 0.8s linear infinite;
+        }
+        .small-loading-spinner { /* For feature-specific loading */
+            border: 3px solid rgba(203, 213, 225, 0.3);
+            border-top: 3px solid #8b5cf6; /* Purple accent for AI features */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        textarea, input[type="password"] {
+            background-color: #0f172a; 
+            border: 1px solid #334155;
+            color: #94a3b8; 
+            caret-color: #60a5fa; 
+        }
+        textarea:focus, input[type="password"]:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+            outline: none;
+        }
+        textarea::-webkit-scrollbar {
+            width: 10px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 10px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .file-upload-area {
+            border-color: #475569; 
+            transition: all 0.3s ease;
+        }
+        .file-upload-area:hover {
+            border-color: #60a5fa; 
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        .gradient-text {
+            background-image: linear-gradient(to right, #60a5fa, #a78bfa); 
+        }
+        .section-title {
+            color: #e2e8f0; 
+            border-bottom: 1px solid #334155;
+            padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 selection:bg-blue-500 selection:text-white">
+    <div class="w-full max-w-3xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="inline-flex items-center text-4xl sm:text-5xl font-bold text-transparent bg-clip-text gradient-text py-1">
+                <i class="fas fa-shield-alt mr-3"></i>CyberLog Sentinel
+            </h1>
+            <p class="text-slate-400 mt-3 text-lg">Securely upload and analyze your log files with AI-powered insights.</p>
+        </header>
+
+        <main class="space-y-8">
+            <!-- File Upload Section -->
+            <section id="uploadSection" class="card p-6 sm:p-8">
+                <div class="mb-6">
+                    <label for="apiKeyInput" class="block text-lg font-semibold text-slate-200 mb-2 flex items-center">
+                        <i class="fas fa-key mr-3 text-amber-400"></i>1. Your Gemini API Key
+                    </label>
+                    <input type="password" id="apiKeyInput" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-300" placeholder="Paste your API key here">
+                    <p class="text-xs text-slate-500 mt-2">
+                        Your API key is required to run the analysis. It is not stored or shared. 
+                        <a href="https://ai.google.dev/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Get a key from Google AI Studio.</a>
+                    </p>
+                </div>
+
+                <h2 class="text-lg font-semibold mb-5 section-title flex items-center">
+                    <i class="fas fa-file-arrow-up mr-3 text-blue-400"></i>2. Upload Log File
+                </h2>
+                <div class="file-upload-area border-2 border-dashed rounded-xl p-8 sm:p-12 text-center">
+                    <input type="file" id="fileInput" accept=".txt,.log" class="hidden">
+                    <label for="fileInput" class="cursor-pointer group">
+                        <i class="fas fa-cloud-upload-alt text-5xl text-slate-500 group-hover:text-blue-400 transition-colors duration-300 mb-4"></i>
+                        <p class="text-blue-400 font-semibold text-lg">Click to upload or drag & drop</p>
+                        <p class="text-xs text-slate-500 mt-2">TXT or LOG files only (Max: 6MB)</p>
+                    </label>
+                </div>
+                <div id="fileInfo" class="mt-5 text-sm text-slate-400 space-y-1"></div>
+                <button id="analyzeButton" class="w-full btn-primary py-3 px-4 rounded-lg mt-6 text-lg hidden">
+                    <i class="fas fa-microscope mr-2"></i>Analyze File
+                </button>
+            </section>
+
+            <!-- Message/Error Display -->
+            <div id="messageArea" class="my-4"></div>
+
+            <!-- Main Loading Indicator -->
+            <div id="loadingIndicator" class="fixed inset-0 loading-spinner-container flex items-center justify-center z-50 hidden">
+                <div class="bg-slate-800 p-8 rounded-lg shadow-2xl flex flex-col items-center">
+                    <div class="loading-spinner mb-5"></div>
+                    <p class="text-xl font-semibold text-slate-200">Analyzing your file...</p>
+                    <p class="text-sm text-slate-400 mt-1">Please wait, insights are on the way!</p>
+                </div>
+            </div>
+
+            <!-- Analysis Results Section -->
+            <section id="analysisResults" class="hidden space-y-8">
+                <div class="card p-6 sm:p-8">
+                    <h2 class="text-xl font-semibold mb-4 section-title flex items-center">
+                        <i class="fas fa-shield-virus mr-3 text-green-400"></i>Safety Check
+                    </h2>
+                    <div id="safetyCheckResult" class="text-base p-4 rounded-lg"></div>
+                     <p class="text-xs text-slate-500 mt-3 italic">Disclaimer: This is a basic, simulated safety check. Real-world analysis requires comprehensive security tools.</p>
+                </div>
+
+                <div id="immediateAttentionSection" class="card p-6 sm:p-8 border-l-4 border-red-500 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-red-400 flex items-center section-title flex-grow">
+                            <i class="fas fa-exclamation-triangle mr-3"></i>Immediate Attention Required!
+                        </h2>
+                    </div>
+                    <textarea id="immediateAttentionOutput" readonly class="w-full h-48 p-4 bg-slate-900 border-slate-700 rounded-lg text-slate-300 text-base resize-none focus:border-red-500"></textarea>
+                    <button id="suggestResponseButton" class="w-full btn-ai-feature py-2.5 px-4 rounded-lg mt-4 text-base hidden">
+                        ✨ Suggest Response Steps <span id="responseButtonSpinner" class="hidden"></span>
+                    </button>
+                </div>
+                
+                <!-- Suggested Response Steps Section -->
+                <div id="suggestedResponseSection" class="card p-6 sm:p-8 hidden">
+                    <h2 class="text-xl font-semibold mb-4 section-title flex items-center">
+                        <i class="fas fa-medkit mr-3 text-purple-400"></i>Suggested Response Steps
+                    </h2>
+                    <textarea id="suggestedResponseOutput" readonly class="w-full h-64 p-4 bg-slate-900 border-slate-700 rounded-lg text-slate-300 text-base resize-none"></textarea>
+                </div>
+
+                <div class="card p-6 sm:p-8">
+                    <h2 class="text-xl font-semibold mb-4 section-title flex items-center">
+                        <i class="fas fa-tasks mr-3 text-sky-400"></i>Detailed Event Analysis
+                    </h2>
+                    <textarea id="detailedAnalysisOutput" readonly class="w-full h-72 p-4 bg-slate-900 border-slate-700 rounded-lg text-slate-300 text-base resize-none"></textarea>
+                </div>
+
+                <button id="resetButton" class="w-full btn-secondary py-3 px-4 rounded-lg text-lg">
+                    <i class="fas fa-redo mr-2"></i>Analyze Another File
+                </button>
+            </section>
+        </main>
+
+        <footer class="text-center mt-16 pb-8">
+            <p class="text-sm text-slate-500">&copy; 2024 CyberLog Sentinel. For educational and demonstration purposes only.</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Element selectors
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const messageArea = document.getElementById('messageArea');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const analysisResults = document.getElementById('analysisResults');
+        const safetyCheckResult = document.getElementById('safetyCheckResult');
+        
+        const immediateAttentionSection = document.getElementById('immediateAttentionSection');
+        const immediateAttentionOutput = document.getElementById('immediateAttentionOutput');
+        const suggestResponseButton = document.getElementById('suggestResponseButton');
+        const responseButtonSpinner = document.getElementById('responseButtonSpinner');
+
+        const suggestedResponseSection = document.getElementById('suggestedResponseSection');
+        const suggestedResponseOutput = document.getElementById('suggestedResponseOutput');
+        
+        const detailedAnalysisOutput = document.getElementById('detailedAnalysisOutput');
+        const resetButton = document.getElementById('resetButton');
+        const uploadSection = document.getElementById('uploadSection');
+
+        const MAX_FILE_SIZE = 6 * 1024 * 1024; // 6MB
+        const ALLOWED_EXTENSIONS = ['.txt', '.log'];
+
+        let currentFile = null;
+
+        // Event Listeners
+        const dropZoneLabel = document.querySelector('label[for="fileInput"]'); 
+        const dropZoneDiv = dropZoneLabel.parentElement; 
+
+        dropZoneDiv.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZoneDiv.classList.add('border-blue-400', 'bg-slate-700/30'); 
+        });
+        dropZoneDiv.addEventListener('dragleave', () => {
+            dropZoneDiv.classList.remove('border-blue-400', 'bg-slate-700/30');
+        });
+        dropZoneDiv.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZoneDiv.classList.remove('border-blue-400', 'bg-slate-700/30');
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files; 
+                handleFileSelect({ target: { files: files } }); 
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+        analyzeButton.addEventListener('click', processFile);
+        suggestResponseButton.addEventListener('click', handleSuggestResponse);
+        resetButton.addEventListener('click', resetAnalyzer);
+
+        // Functions
+        function handleFileSelect(event) {
+            clearMessages();
+            const file = event.target.files[0];
+            if (!file) {
+                fileInfo.textContent = '';
+                analyzeButton.classList.add('hidden');
+                currentFile = null;
+                return;
+            }
+
+            const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+            if (file.size > MAX_FILE_SIZE) {
+                displayMessage(`File is too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB.`, 'error');
+                resetFileInput();
+                return;
+            }
+
+            if (!ALLOWED_EXTENSIONS.includes(fileExtension)) {
+                 displayMessage(`Invalid file type. Only ${ALLOWED_EXTENSIONS.join(' or ')} files are allowed.`, 'error');
+                resetFileInput();
+                return;
+            }
+            
+            fileInfo.innerHTML = `
+                <p><i class="fas fa-file-alt mr-2 text-slate-400"></i><span class="font-semibold text-slate-300">File:</span> ${escapeHtml(file.name)}</p>
+                <p><i class="fas fa-database mr-2 text-slate-400"></i><span class="font-semibold text-slate-300">Size:</span> ${(file.size / 1024).toFixed(2)} KB</p>
+            `;
+            analyzeButton.classList.remove('hidden');
+            currentFile = file;
+        }
+        
+        function resetFileInput() {
+            fileInput.value = ''; 
+            fileInfo.textContent = '';
+            analyzeButton.classList.add('hidden');
+            currentFile = null;
+        }
+        
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') return '';
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        function processFile() {
+            if (!currentFile) {
+                displayMessage('No file selected. Please upload a file first.', 'error');
+                return;
+            }
+            if (!apiKeyInput.value.trim()) {
+                displayMessage('Please enter your Gemini API key to run the analysis.', 'error');
+                return;
+            }
+            loadingIndicator.classList.remove('hidden');
+            uploadSection.classList.add('hidden');
+            analysisResults.classList.add('hidden'); 
+            clearMessages();
+            suggestedResponseSection.classList.add('hidden');
+            suggestResponseButton.classList.add('hidden');
+
+            setTimeout(() => { 
+                performSafetyCheck(currentFile);
+                analyzeFileContent(currentFile); 
+            }, 1000); 
+        }
+
+        function performSafetyCheck(file) {
+            safetyCheckResult.innerHTML = `
+                <p class="font-medium text-slate-200">File: <span class="font-normal text-slate-300">${escapeHtml(file.name)}</span></p>
+                <p class="font-medium text-slate-200">Status: <span class="font-normal text-green-400">Basic checks passed (type, size).</span></p>
+            `;
+            safetyCheckResult.classList.remove('alert-warning', 'alert-error', 'alert-success');
+            safetyCheckResult.classList.add('alert-success', 'bg-green-900/20', 'border-green-500'); 
+        }
+
+        async function analyzeFileContent(file) { 
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const content = e.target.result;
+                const contentSample = content.substring(0, 3000); 
+
+                try {
+                    const analysis = await callGeminiForInitialAnalysis(contentSample);
+                    displayAnalysis(analysis);
+                } catch (error) {
+                    console.error('Error during initial analysis:', error);
+                    displayMessage(`Initial analysis failed: ${error.message}. Check console.`, 'error');
+                    resetToUploadStateOnError();
+                } finally {
+                    loadingIndicator.classList.add('hidden'); 
+                }
+            };
+            reader.onerror = function() {
+                displayMessage('Error reading file.', 'error');
+                resetToUploadStateOnError();
+            };
+            reader.readAsText(file);
+        }
+        
+        function resetToUploadStateOnError() {
+            loadingIndicator.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+        }
+
+        async function callGeminiForInitialAnalysis(logExcerpt) {
+            const prompt = `
+You are a highly skilled cybersecurity analyst AI. Your task is to meticulously analyze the provided log file excerpt.
+The user requires a rapid, clear summary that prioritizes any suspicious or anomalous activities.
+
+Log File Excerpt:
+---
+${logExcerpt}
+---
+
+Based on this excerpt, provide your analysis as a JSON object with two distinct keys: "immediateAttention" and "detailedSummary".
+
+1.  **immediateAttention**: Concisely list any events, patterns, or anomalies that are highly suspicious, indicate a potential security incident, or require immediate investigation. Use bullet points for multiple items if applicable. If nothing seems immediately alarming or critically threatening in this excerpt, state that clearly and professionally (e.g., "No critical threats or high-priority alerts identified in this excerpt."). Be direct and unambiguous. Ensure all newline characters within string values are properly escaped as \\n.
+2.  **detailedSummary**: Provide a slightly more detailed, yet still brief, summary of other notable events, general system activity, or informational messages observed in the log. Explain any technical terms simply. Aim for clarity and conciseness. Ensure all newline characters within string values are properly escaped as \\n.
+
+If the log excerpt is too short or uninformative, indicate that.
+`;
+            return await callGenericGeminiAPI(prompt, 0.25, 2048);
+        }
+
+        async function handleSuggestResponse() {
+            const attentionItems = immediateAttentionOutput.value;
+            if (!attentionItems || attentionItems.toLowerCase().includes("no critical threats")) {
+                return;
+            }
+
+            suggestResponseButton.disabled = true;
+            responseButtonSpinner.innerHTML = '<div class="small-loading-spinner"></div>'; 
+            responseButtonSpinner.classList.remove('hidden');
+            suggestedResponseSection.classList.add('hidden'); 
+
+            try {
+                const suggestions = await callGeminiForResponseSteps(attentionItems);
+                suggestedResponseOutput.value = suggestions.responseSteps || "Could not generate specific response steps. Please review the findings manually.";
+            } catch (error) {
+                console.error('Error fetching response suggestions:', error);
+                suggestedResponseOutput.value = `Error fetching suggestions: ${error.message}. Please try again.`;
+                displayMessage(`Failed to get response suggestions: ${error.message}`, 'error');
+            } finally {
+                suggestResponseButton.disabled = false;
+                responseButtonSpinner.classList.add('hidden');
+                responseButtonSpinner.innerHTML = ''; 
+                suggestedResponseSection.classList.remove('hidden');
+            }
+        }
+
+        async function callGeminiForResponseSteps(attentionItems) {
+            const prompt = `
+You are a cybersecurity incident response advisor AI.
+Based on the following "Immediate Attention" items identified from a log file, provide a concise list of recommended initial incident response steps.
+Focus on practical, actionable advice for a security analyst. Format the response as a JSON object with a single key "responseSteps", where the value is a string containing bulleted or numbered steps. Ensure newlines in the string are escaped as \\n.
+
+Immediate Attention Items:
+---
+${attentionItems}
+---
+
+Example JSON output format:
+{
+  "responseSteps": "- Isolate the affected system(s) from the network to prevent further spread.\\n- Preserve evidence: Take forensic images of affected systems if possible.\\n- Identify the scope: Determine which systems, accounts, and data are affected.\\n- Review relevant logs for correlated activity.\\n- Escalate to the security team lead."
+}
+`;
+            return await callGenericGeminiAPI(prompt, 0.4, 2048); 
+        }
+        
+        async function callGenericGeminiAPI(promptText, temperature, maxTokens) {
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                throw new Error("API Key is missing. Please enter your key.");
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: promptText }] }],
+                generationConfig: {
+                    temperature: temperature, 
+                    maxOutputTokens: maxTokens,
+                }
+            };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.json();
+                const errorMsg = errorBody?.error?.message || "Unknown API error.";
+                console.error("API Error Response Body:", errorBody);
+                throw new Error(`API request failed: ${errorMsg}`);
+            }
+
+            const result = await response.json();
+
+            if (result.candidates && result.candidates.length > 0) {
+                 if (result.candidates[0].finishReason === 'MAX_TOKENS') {
+                    throw new Error("The AI's response was too long and was truncated. Please try a smaller file excerpt.");
+                }
+                if (result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts.length > 0) {
+                    const rawText = result.candidates[0].content.parts[0].text;
+                    try {
+                        let jsonStringToParse;
+                        const fencedJsonMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/);
+
+                        if (fencedJsonMatch && typeof fencedJsonMatch[1] === 'string') {
+                            jsonStringToParse = fencedJsonMatch[1].trim();
+                        } else {
+                            jsonStringToParse = rawText.trim();
+                        }
+                        
+                        return JSON.parse(jsonStringToParse);
+
+                    } catch (e) {
+                        console.error("Failed to parse JSON from LLM response:", e);
+                        console.error("Raw LLM response text that caused parsing failure:", rawText);
+                        throw new Error(`Could not parse the AI's response: ${e.message}`);
+                    }
+                }
+            }
+            
+            console.error("Unexpected API response structure:", result);
+            throw new Error('Invalid or empty response structure from API.');
+        }
+
+
+        function displayAnalysis(analysisData) {
+            if (analysisData.error) {
+                // This case is for manually structured errors, though the new code throws errors instead.
+                resetToUploadStateOnError();
+                displayMessage(analysisData.message, 'error');
+                return;
+            }
+
+            const noCriticalThreatsPattern = /no (immediate|critical|high-priority) (threats|alerts|issues|concerns)/i;
+
+            if (analysisData && analysisData.immediateAttention && analysisData.immediateAttention.trim() !== "" && !noCriticalThreatsPattern.test(analysisData.immediateAttention)) {
+                immediateAttentionOutput.value = analysisData.immediateAttention;
+                immediateAttentionSection.classList.remove('hidden');
+                suggestResponseButton.classList.remove('hidden'); 
+            } else {
+                immediateAttentionOutput.value = analysisData.immediateAttention || "No specific items requiring immediate attention were flagged by the AI in this excerpt.";
+                immediateAttentionSection.classList.remove('hidden'); 
+                suggestResponseButton.classList.add('hidden'); 
+            }
+
+            detailedAnalysisOutput.value = analysisData.detailedSummary || "No detailed summary available or an error occurred during analysis.";
+            analysisResults.classList.remove('hidden');
+            uploadSection.classList.add('hidden'); 
+        }
+
+        function displayMessage(message, type = 'info') {
+            messageArea.innerHTML = ''; 
+            const messageDiv = document.createElement('div');
+            const icon = document.createElement('i');
+            icon.className = 'fas mr-3';
+            
+            messageDiv.className = 'p-4 rounded-lg text-base flex items-center shadow-md';
+            if (type === 'error') {
+                icon.classList.add('fa-times-circle', 'text-red-300');
+                messageDiv.classList.add('alert-error', 'bg-red-700/30', 'border-red-500');
+                messageDiv.style.color = '#fecaca'; 
+            } else { 
+                icon.classList.add('fa-check-circle', 'text-green-300');
+                messageDiv.classList.add('alert-success', 'bg-green-700/30', 'border-green-500');
+                messageDiv.style.color = '#bbf7d0'; 
+            }
+            messageDiv.appendChild(icon);
+            messageDiv.appendChild(document.createTextNode(message));
+            messageArea.appendChild(messageDiv);
+        }
+
+        function clearMessages() {
+            messageArea.innerHTML = '';
+        }
+
+        function resetAnalyzer() {
+            currentFile = null;
+            resetFileInput();
+            analysisResults.classList.add('hidden');
+            immediateAttentionSection.classList.add('hidden');
+            suggestResponseButton.classList.add('hidden');
+            suggestedResponseSection.classList.add('hidden');
+
+            uploadSection.classList.remove('hidden');
+            clearMessages();
+            immediateAttentionOutput.value = '';
+            detailedAnalysisOutput.value = '';
+            suggestedResponseOutput.value = '';
+            safetyCheckResult.textContent = '';
+            safetyCheckResult.className = 'text-base p-4 rounded-lg'; 
+        }
+
+    </script>
+</body>
+</html>
